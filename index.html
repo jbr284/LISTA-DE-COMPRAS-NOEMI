@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -120,6 +119,68 @@
       text-align: center;
       margin-top: 20px;
     }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+      #app {
+        padding: 10px;
+      }
+
+      #formulario {
+        width: 100%;
+      }
+
+      input, button {
+        width: 100%;
+      }
+
+      #listasSalvas {
+        width: 100%;
+      }
+
+      #listasSalvas button {
+        width: 48%;
+        margin-bottom: 10px;
+      }
+
+      #itensLista div {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      #itensLista input {
+        width: 100%;
+      }
+
+      .totalCompra {
+        font-size: 16px;
+        text-align: left;
+      }
+    }
+
+    /* Para telas menores,  que ajustam os botões para ficarem ao lado */
+    @media (max-width: 480px) {
+      #listasSalvas button {
+        width: 48%;
+        margin-left: 0;
+        margin-top: 10px;
+      }
+
+      #itensLista div {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      #itensLista input {
+        width: 120px;
+      }
+
+      .message {
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -172,7 +233,7 @@
           <button onclick="abrirLista(${index})">Abrir Lista</button>
           <button onclick="excluirLista(${index})">Excluir Lista</button>
           <button onclick="adicionarItemNaLista(${index})">Adicionar Item</button>
-          <button onclick="atualizarLista(${index})">Atualizar Lista</button>
+          <button onclick="atualizarLista(${index})">Atualizar ou Recolher Lista</button>
         `;
         divListas.appendChild(listaDiv);
       });
@@ -324,6 +385,6 @@
     // Chama a função para carregar as listas ao carregar a página
     window.onload = carregarListas;
   </script>
+  
 </body>
 </html>
-    
