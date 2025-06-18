@@ -1,0 +1,329 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Compras</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #app {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #formulario {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+    }
+
+    #itemForm {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    input[type="number"] {
+      width: 100%;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      border: none;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #listasSalvas {
+      margin-top: 30px;
+    }
+
+    #listasSalvas div {
+      margin-bottom: 15px;
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+    }
+
+    #listasSalvas button {
+      background-color: #ff6347;
+      color: white;
+      margin-left: 10px;
+      width: auto;
+    }
+
+    #listasSalvas button:hover {
+      background-color: #ff4500;
+    }
+
+    #itensLista {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    #itensLista div {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #itensLista input {
+      width: 100px;
+    }
+
+    .message {
+      color: green;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .totalCompra {
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <h1>Lista de Compras</h1>
+
+    <!-- Formulário para criar uma nova lista -->
+    <div id="formulario">
+      <input type="text" id="nomeLista" placeholder="Nome da Lista" />
+      
+      <div id="itemForm">
+        <input type="text" id="produto" placeholder="Produto" />
+        <input type="number" id="quantidade" placeholder="Quantidade" />
+        <button id="adicionarItem">Adicionar Item</button>
+      </div>
+
+      <button id="concluirLista">Concluir Lista</button>
+    </div>
+
+    <!-- Exibição das listas criadas -->
+    <div id="listasSalvas">
+      <h2>Listas Salvas</h2>
+      <div id="listas"></div>
+    </div>
+
+    <!-- Exibição dos itens da lista aberta -->
+    <div id="itensLista">
+      <!-- Os itens da lista serão exibidos aqui -->
+    </div>
+
+    <!-- Mensagens de status -->
+    <div id="messageContainer" class="message"></div>
+
+    <!-- Exibição do total geral -->
+    <div id="totalCompra" class="totalCompra"></div>
+  </div>
+
+  <script>
+    // Função para carregar as listas salvas do localStorage
+    function carregarListas() {
+      const listas = JSON.parse(localStorage.getItem('listas')) || [];
+      const divListas = document.getElementById('listas');
+      divListas.innerHTML = ''; // Limpa a lista antes de preencher
+
+      listas.forEach((lista, index) => {
+        const listaDiv = document.createElement('div');
+        listaDiv.innerHTML = `
+          <h3>${lista.nomeLista}</h3>
+          <button onclick="abrirLista(${index})">Abrir Lista</button>
+          <button onclick="excluirLista(${index})">Excluir Lista</button>
+          <button onclick="adicionarItemNaLista(${index})">Adicionar Item</button>
+          <button onclick="atualizarLista(${index})">Atualizar Lista</button>
+        `;
+        divListas.appendChild(listaDiv);
+      });
+    }
+
+    // Função para adicionar item à lista
+    document.getElementById('adicionarItem').addEventListener('click', () => {
+      const produto = document.getElementById('produto').value;
+      const quantidade = parseInt(document.getElementById('quantidade').value);
+      const nomeLista = document.getElementById('nomeLista').value || 'Nova Lista';
+
+      if (!produto || isNaN(quantidade)) {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+
+      const listas = JSON.parse(localStorage.getItem('listas')) || [];
+      let novaLista = listas.find(l => l.nomeLista === nomeLista);
+
+      // Se a lista não existe, cria uma nova
+      if (!novaLista) {
+        novaLista = { nomeLista, itens: [] };
+        listas.push(novaLista);
+      }
+
+      // Adiciona o novo item
+      novaLista.itens.push({ produto, quantidade, tipo: 'Varejo', precoUnitario: 0, total: 0 });
+
+      // Atualiza o localStorage
+      localStorage.setItem('listas', JSON.stringify(listas));
+
+      // Exibe a mensagem de item adicionado
+      const messageContainer = document.getElementById('messageContainer');
+      messageContainer.textContent = 'Item adicionado com sucesso!';
+
+      // Faz a mensagem desaparecer após 2 segundos
+      setTimeout(() => {
+        messageContainer.textContent = '';
+      }, 2000);
+
+      // Limpa os campos para adicionar um novo item
+      document.getElementById('produto').value = '';
+      document.getElementById('quantidade').value = '';
+
+      carregarListas();
+    });
+
+    // Função para concluir a lista
+    document.getElementById('concluirLista').addEventListener('click', () => {
+      const nomeLista = document.getElementById('nomeLista').value || 'Nova Lista';
+      const listas = JSON.parse(localStorage.getItem('listas')) || [];
+      let novaLista = listas.find(l => l.nomeLista === nomeLista);
+
+      if (novaLista) {
+        document.getElementById('messageContainer').textContent = 'Lista finalizada com sucesso!';
+      } else {
+        document.getElementById('messageContainer').textContent = 'Por favor, adicione itens à lista antes de concluir.';
+      }
+    });
+
+    // Função para abrir a lista e mostrar os itens com preço e tipo
+    function abrirLista(index) {
+      const listas = JSON.parse(localStorage.getItem('listas')) || [];
+      const lista = listas[index];
+      const divItens = document.getElementById('itensLista');
+      divItens.innerHTML = ''; // Limpa os itens anteriores
+
+      // Exibe os itens da lista e os campos adicionais
+      lista.itens.forEach((item, itemIndex) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.innerHTML = `
+          <span>${item.produto} - ${item.quantidade} unidades</span>
+          <select id="tipo${itemIndex}">
+            <option value="Varejo" ${item.tipo === 'Varejo' ? 'selected' : ''}>Varejo</option>
+            <option value="Atacado" ${item.tipo === 'Atacado' ? 'selected' : ''}>Atacado</option>
+          </select>
+          <input type="number" id="precoUnitario${itemIndex}" placeholder="Preço Unitário" value="${item.precoUnitario}" />
+          <span id="totalItem${itemIndex}">Total: R$ ${item.total.toFixed(2)}</span>
+          <button onclick="excluirItem(${index}, ${itemIndex})">Excluir Item</button>
+        `;
+        divItens.appendChild(itemDiv);
+
+        // Atualiza o total ao alterar preço unitário ou tipo
+        document.getElementById(`precoUnitario${itemIndex}`).addEventListener('input', (e) => {
+          const precoUnitario = parseFloat(e.target.value);
+          if (!isNaN(precoUnitario)) {
+            item.precoUnitario = precoUnitario;
+            item.total = precoUnitario * item.quantidade;
+            document.getElementById(`totalItem${itemIndex}`).textContent = `Total: R$ ${item.total.toFixed(2)}`;
+            atualizarTotalCompra(lista);
+          }
+        });
+
+        document.getElementById(`tipo${itemIndex}`).addEventListener('change', (e) => {
+          item.tipo = e.target.value;
+        });
+      });
+
+      // Exibe o total da compra
+      atualizarTotalCompra(lista);
+    }
+
+    // Função para excluir item da lista
+    function excluirItem(listaIndex, itemIndex) {
+      const listas = JSON.parse(localStorage.getItem('listas')) || [];
+      const lista = listas[listaIndex];
+
+      // Remove o item da lista
+      lista.itens.splice(itemIndex, 1);
+
+      // Atualiza o localStorage
+      localStorage.setItem('listas', JSON.stringify(listas));
+
+      // Atualiza a exibição da lista
+      abrirLista(listaIndex);
+    }
+
+    // Função para adicionar item à lista aberta
+    function adicionarItemNaLista(index) {
+      const listas = JSON.parse(localStorage.getItem('listas')) || [];
+      const lista = listas[index];
+      document.getElementById('produto').value = '';
+      document.getElementById('quantidade').value = '';
+      document.getElementById('nomeLista').value = lista.nomeLista;
+    }
+
+    // Função para calcular e atualizar o total da compra
+    function atualizarTotalCompra(lista) {
+      const totalCompra = lista.itens.reduce((total, item) => total + item.total, 0);
+      const divTotalCompra = document.getElementById('totalCompra');
+      divTotalCompra.textContent = `Total da Compra: R$ ${totalCompra.toFixed(2)}`;
+    }
+
+    // Função para excluir lista
+    function excluirLista(index) {
+      const listas = JSON.parse(localStorage.getItem('listas')) || [];
+      if (confirm('Tem certeza de que deseja excluir esta lista?')) {
+        listas.splice(index, 1);
+        localStorage.setItem('listas', JSON.stringify(listas));
+        carregarListas();
+      }
+    }
+
+    // Função para atualizar a lista (Recarregar a página)
+    function atualizarLista(index) {
+      location.reload(); // Recarrega a página
+    }
+
+    // Chama a função para carregar as listas ao carregar a página
+    window.onload = carregarListas;
+  </script>
+</body>
+</html>
+    
