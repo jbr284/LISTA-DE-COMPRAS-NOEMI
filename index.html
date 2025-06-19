@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -220,6 +221,8 @@
   </div>
 
   <script>
+    let listaAbertaIndex = -1; // Variável para armazenar o índice da lista que está aberta
+
     // Função para carregar as listas salvas do localStorage
     function carregarListas() {
       const listas = JSON.parse(localStorage.getItem('listas')) || [];
@@ -232,7 +235,7 @@
           <h3>${lista.nomeLista}</h3>
           <button onclick="abrirLista(${index})">Abrir Lista</button>
           <button onclick="excluirLista(${index})">Excluir Lista</button>
-          <button onclick="adicionarItemNaLista(${index})">Adicionar Item</button>
+          <button onclick="adicionarItemNaLista(${index})" ${lista.finalizada ? 'disabled' : ''}>Adicionar Item</button>
           <button onclick="atualizarLista(${index})">Atualizar ou Recolher Lista</button>
         `;
         divListas.appendChild(listaDiv);
@@ -281,21 +284,27 @@
       carregarListas();
     });
 
-    // Função para concluir a lista
+    // Função para concluir a lista e recarregar a página
     document.getElementById('concluirLista').addEventListener('click', () => {
       const nomeLista = document.getElementById('nomeLista').value || 'Nova Lista';
       const listas = JSON.parse(localStorage.getItem('listas')) || [];
       let novaLista = listas.find(l => l.nomeLista === nomeLista);
 
       if (novaLista) {
+        novaLista.finalizada = true; // Marca a lista como finalizada
+        localStorage.setItem('listas', JSON.stringify(listas));
         document.getElementById('messageContainer').textContent = 'Lista finalizada com sucesso!';
       } else {
         document.getElementById('messageContainer').textContent = 'Por favor, adicione itens à lista antes de concluir.';
       }
+
+      // Recarregar a página para simular o "fechamento" da lista
+      location.reload();
     });
 
     // Função para abrir a lista e mostrar os itens com preço e tipo
     function abrirLista(index) {
+      listaAbertaIndex = index; // Armazenar o índice da lista aberta
       const listas = JSON.parse(localStorage.getItem('listas')) || [];
       const lista = listas[index];
       const divItens = document.getElementById('itensLista');
@@ -316,24 +325,42 @@
         `;
         divItens.appendChild(itemDiv);
 
-        // Atualiza o total ao alterar preço unitário ou tipo
+        // Permitir edição do preço e tipo, e salvar no localStorage
         document.getElementById(`precoUnitario${itemIndex}`).addEventListener('input', (e) => {
           const precoUnitario = parseFloat(e.target.value);
           if (!isNaN(precoUnitario)) {
             item.precoUnitario = precoUnitario;
             item.total = precoUnitario * item.quantidade;
             document.getElementById(`totalItem${itemIndex}`).textContent = `Total: R$ ${item.total.toFixed(2)}`;
+            salvarLista(listas);
             atualizarTotalCompra(lista);
           }
         });
 
         document.getElementById(`tipo${itemIndex}`).addEventListener('change', (e) => {
           item.tipo = e.target.value;
+          salvarLista(listas);
         });
       });
 
       // Exibe o total da compra
       atualizarTotalCompra(lista);
+    }
+
+    // Função para adicionar item à lista aberta ao clicar em "Adicionar Item na Lista"
+    function adicionarItemNaLista(index) {
+      const listas = JSON.parse(localStorage.getItem('listas')) || [];
+      const lista = listas[index];
+      
+      // Preenche o campo "Nome da Lista" com o nome da lista
+      document.getElementById('nomeLista').value = lista.nomeLista;
+    }
+
+    // Função para calcular e atualizar o total da compra
+    function atualizarTotalCompra(lista) {
+      const totalCompra = lista.itens.reduce((total, item) => total + item.total, 0);
+      const divTotalCompra = document.getElementById('totalCompra');
+      divTotalCompra.textContent = `Total da Compra: R$ ${totalCompra.toFixed(2)}`;
     }
 
     // Função para excluir item da lista
@@ -351,22 +378,6 @@
       abrirLista(listaIndex);
     }
 
-    // Função para adicionar item à lista aberta
-    function adicionarItemNaLista(index) {
-      const listas = JSON.parse(localStorage.getItem('listas')) || [];
-      const lista = listas[index];
-      document.getElementById('produto').value = '';
-      document.getElementById('quantidade').value = '';
-      document.getElementById('nomeLista').value = lista.nomeLista;
-    }
-
-    // Função para calcular e atualizar o total da compra
-    function atualizarTotalCompra(lista) {
-      const totalCompra = lista.itens.reduce((total, item) => total + item.total, 0);
-      const divTotalCompra = document.getElementById('totalCompra');
-      divTotalCompra.textContent = `Total da Compra: R$ ${totalCompra.toFixed(2)}`;
-    }
-
     // Função para excluir lista
     function excluirLista(index) {
       const listas = JSON.parse(localStorage.getItem('listas')) || [];
@@ -375,6 +386,11 @@
         localStorage.setItem('listas', JSON.stringify(listas));
         carregarListas();
       }
+    }
+
+    // Função para salvar a lista no localStorage
+    function salvarLista(listas) {
+      localStorage.setItem('listas', JSON.stringify(listas));
     }
 
     // Função para atualizar a lista (Recarregar a página)
