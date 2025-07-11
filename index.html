@@ -184,8 +184,8 @@
     }
   </style>
   <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
-<meta name="theme-color" content="#4CAF50">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<meta name="theme-color" content="#4CAF50" />
 
 </head>
 <body>
@@ -407,10 +407,13 @@
   </script>
   <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('Service Worker registrado!', reg))
-      .catch(err => console.error('Erro ao registrar o Service Worker:', err));
-  }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('SW registrado', reg))
+      .catch(err => console.error('SW falhou', err));
+  });
+}
+
 </script>
   
 </body>
